@@ -21,7 +21,7 @@ type PrimitiveEntityDescriptor =
 interface EntityArrayDescriptor extends ArrayDescriptor<EntityDescriptor> { }
 
 type EntityDescriptorMap = {
-  [key: string]: EntityDescriptor | ArrayDescriptor<EntityDescriptor>;
+  [key: string]: EntityDescriptor
 }
 
 type TypeFromDescriptor<T> =
