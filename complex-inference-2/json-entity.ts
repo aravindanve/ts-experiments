@@ -1,82 +1,82 @@
-type EntityDescriptor =
-  PrimitiveEntityDescriptor |
-  ArrayDescriptor<EntityDescriptorArray> |
-  ObjectDescriptor<EntityDescriptorMap>
-
-type EntityDescriptorMap = { [key: string]: EntityDescriptor }
-type EntityDescriptorArray = { items: EntityDescriptor }
-
-type PrimitiveEntityDescriptor =
-  BooleanDescriptor |
-  NumberDescriptor |
-  StringDescriptor
-
-type BooleanDescriptor = { booleanType: true }
-type NumberDescriptor = { numberType: true }
-type StringDescriptor = { stringType: true }
-type ObjectDescriptor<T extends EntityDescriptorMap> = { objectType: true, properties: T }
-type ArrayDescriptor<T extends EntityDescriptorArray> = { arrayType: true } & T
-
-type Optional<T> = T & { optional: true }
-type Nullable<T> = T & { nullable: true }
-
-type MetaDescriptor = {
-  optional?: boolean
-  nullable?: boolean
-}
-
-type TypeFromDescriptor<T> =
-  T extends Optional<Nullable<infer T1>> ? ComplexTypeFromDescriptor<T1> | undefined | null :
-  T extends Optional<infer T2> ? ComplexTypeFromDescriptor<T2> | undefined :
-  T extends Nullable<infer T3> ? ComplexTypeFromDescriptor<T3> | null :
-  ComplexTypeFromDescriptor<T>
-
-type PrimitiveTypeFromDescriptor<T> =
-  T extends BooleanDescriptor ? boolean :
-  T extends NumberDescriptor ? number :
-  T extends StringDescriptor ? string :
-  unknown
-
-type ComplexTypeFromDescriptor<T> =
-  T extends ArrayDescriptor<infer T1> ? ComplexTypeFromDescriptorMap<T1>['items'][] :
-  T extends ObjectDescriptor<infer T2> ? ComplexTypeFromDescriptorMap<T2> :
-  PrimitiveTypeFromDescriptor<T>
-
-type ComplexTypeFromDescriptorMap<T> =
-  T extends object ? { [K in keyof T]: TypeFromDescriptor<T[K]> } : unknown
-
-type EntityDescriptorWithMeta<M extends MetaDescriptor, T> =
-  M extends { optional: true, nullable: true } ? Optional<Nullable<T>> :
-  M extends { optional: true } ? Optional<T> :
-  M extends { nullable: true } ? Nullable<T> :
-  T
-
-type EntityFactory<T> = { (): T }
-
-type EntityMetaFactoryReturnType<M extends MetaDescriptor, T> =
-  EntityDescriptorWithMeta<M, T> &
-  EntityFactory<TypeFromDescriptor<EntityDescriptorWithMeta<M, T>>>
-
 namespace Entity {
-  export function Boolean<M extends MetaDescriptor>(meta?: M): EntityMetaFactoryReturnType<M, BooleanDescriptor> {
+  export type Descriptor =
+    PrimitiveDescriptor |
+    ArrayDescriptor<UnkeyedContainerDescriptor> |
+    ObjectDescriptor<KeyedContainerDescriptor>
+
+  export type KeyedContainerDescriptor = { [key: string]: Descriptor }
+  export type UnkeyedContainerDescriptor = { items: Descriptor }
+
+  export type PrimitiveDescriptor =
+    BooleanDescriptor |
+    NumberDescriptor |
+    StringDescriptor
+
+  export type BooleanDescriptor = { booleanType: true }
+  export type NumberDescriptor = { numberType: true }
+  export type StringDescriptor = { stringType: true }
+  export type ObjectDescriptor<T extends KeyedContainerDescriptor> = { objectType: true, properties: T }
+  export type ArrayDescriptor<T extends UnkeyedContainerDescriptor> = { arrayType: true } & T
+
+  export type Optional<T> = T & { optional: true }
+  export type Nullable<T> = T & { nullable: true }
+
+  export type MetaDescriptor = {
+    optional?: boolean
+    nullable?: boolean
+  }
+
+  export type TypeFromDescriptor<T> =
+    T extends Optional<Nullable<infer T1>> ? ComplexTypeFromDescriptor<T1> | undefined | null :
+    T extends Optional<infer T2> ? ComplexTypeFromDescriptor<T2> | undefined :
+    T extends Nullable<infer T3> ? ComplexTypeFromDescriptor<T3> | null :
+    ComplexTypeFromDescriptor<T>
+
+  export type PrimitiveTypeFromDescriptor<T> =
+    T extends BooleanDescriptor ? boolean :
+    T extends NumberDescriptor ? number :
+    T extends StringDescriptor ? string :
+    unknown
+
+  export type ComplexTypeFromDescriptor<T> =
+    T extends ArrayDescriptor<infer T1> ? ComplexTypeFromDescriptorMap<T1>['items'][] :
+    T extends ObjectDescriptor<infer T2> ? ComplexTypeFromDescriptorMap<T2> :
+    PrimitiveTypeFromDescriptor<T>
+
+  export type ComplexTypeFromDescriptorMap<T> =
+    T extends object ? { [K in keyof T]: TypeFromDescriptor<T[K]> } : unknown
+
+  export type DescriptorWithMeta<M extends MetaDescriptor, T> =
+    M extends { optional: true, nullable: true } ? Optional<Nullable<T>> :
+    M extends { optional: true } ? Optional<T> :
+    M extends { nullable: true } ? Nullable<T> :
+    T
+
+  export type Factory<T> = { (): T }
+
+  export type MetaFactoryReturnType<M extends MetaDescriptor, T> =
+    DescriptorWithMeta<M, T> &
+    Factory<TypeFromDescriptor<DescriptorWithMeta<M, T>>>
+
+  export function Boolean<M extends MetaDescriptor>(meta?: M): MetaFactoryReturnType<M, BooleanDescriptor> {
     throw new Error('Not implemented')
   }
 
-  export function Number<M extends MetaDescriptor>(meta?: M): EntityMetaFactoryReturnType<M, NumberDescriptor> {
+  export function Number<M extends MetaDescriptor>(meta?: M): MetaFactoryReturnType<M, NumberDescriptor> {
     throw new Error('Not implemented')
   }
 
-  export function String<M extends MetaDescriptor>(meta?: M): EntityMetaFactoryReturnType<M, StringDescriptor> {
+  export function String<M extends MetaDescriptor>(meta?: M): MetaFactoryReturnType<M, StringDescriptor> {
     throw new Error('Not implemented')
   }
 
-  export function Object<T extends EntityDescriptorMap, M extends MetaDescriptor>(
-    descriptors: T, meta?: M): EntityMetaFactoryReturnType<M, ObjectDescriptor<T>> {
+  export function Object<T extends KeyedContainerDescriptor, M extends MetaDescriptor>(
+    descriptors: T, meta?: M): MetaFactoryReturnType<M, ObjectDescriptor<T>> {
     throw new Error('Not implemented')
   }
 
-  export function Array<T extends EntityDescriptor, M extends MetaDescriptor>(
-    descriptor: T, meta?: M): EntityMetaFactoryReturnType<M, ArrayDescriptor<{ items: T }>> {
+  export function Array<T extends Descriptor, M extends MetaDescriptor>(
+    descriptor: T, meta?: M): MetaFactoryReturnType<M, ArrayDescriptor<{ items: T }>> {
     throw new Error('Not implemented')
   }
 }
