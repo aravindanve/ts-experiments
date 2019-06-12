@@ -38,14 +38,14 @@ type PrimitiveTypeFromDescriptor<T> =
   unknown
 
 type ComplexTypeFromDescriptor<T> =
-  T extends ArrayDescriptor<infer I> ? ComplexTypeFromDescriptorMap<I>['items'][] :
-  T extends ObjectDescriptor<infer M> ? ComplexTypeFromDescriptorMap<M> :
+  T extends ArrayDescriptor<infer T1> ? ComplexTypeFromDescriptorMap<T1>['items'][] :
+  T extends ObjectDescriptor<infer T2> ? ComplexTypeFromDescriptorMap<T2> :
   PrimitiveTypeFromDescriptor<T>
 
 type ComplexTypeFromDescriptorMap<T> =
   T extends object ? { [K in keyof T]: TypeFromDescriptor<T[K]> } : unknown
 
-type WrappedTypeFromMeta<M extends MetaDescriptor, T> =
+type EntityDescriptorWithMeta<M extends MetaDescriptor, T> =
   M extends { optional: true, nullable: true } ? Optional<Nullable<T>> :
   M extends { optional: true } ? Optional<T> :
   M extends { nullable: true } ? Nullable<T> :
@@ -53,29 +53,30 @@ type WrappedTypeFromMeta<M extends MetaDescriptor, T> =
 
 type EntityFactory<T> = { (): T }
 
-type EntityConfiguratorReturnType<M extends MetaDescriptor, T> =
-  WrappedTypeFromMeta<M, T> & EntityFactory<TypeFromDescriptor<WrappedTypeFromMeta<M, T>>>
+type EntityMetaFactoryReturnType<M extends MetaDescriptor, T> =
+  EntityDescriptorWithMeta<M, T> &
+  EntityFactory<TypeFromDescriptor<EntityDescriptorWithMeta<M, T>>>
 
 namespace Entity {
-  export function Boolean<M extends MetaDescriptor>(meta?: M): EntityConfiguratorReturnType<M, BooleanDescriptor> {
+  export function Boolean<M extends MetaDescriptor>(meta?: M): EntityMetaFactoryReturnType<M, BooleanDescriptor> {
     throw new Error('Not implemented')
   }
 
-  export function Number<M extends MetaDescriptor>(meta?: M): EntityConfiguratorReturnType<M, NumberDescriptor> {
+  export function Number<M extends MetaDescriptor>(meta?: M): EntityMetaFactoryReturnType<M, NumberDescriptor> {
     throw new Error('Not implemented')
   }
 
-  export function String<M extends MetaDescriptor>(meta?: M): EntityConfiguratorReturnType<M, StringDescriptor> {
+  export function String<M extends MetaDescriptor>(meta?: M): EntityMetaFactoryReturnType<M, StringDescriptor> {
     throw new Error('Not implemented')
   }
 
   export function Object<T extends EntityDescriptorMap, M extends MetaDescriptor>(
-    descriptors: T, meta?: M): EntityConfiguratorReturnType<M, ObjectDescriptor<T>> {
+    descriptors: T, meta?: M): EntityMetaFactoryReturnType<M, ObjectDescriptor<T>> {
     throw new Error('Not implemented')
   }
 
   export function Array<T extends EntityDescriptor, M extends MetaDescriptor>(
-    descriptor: T, meta?: M): EntityConfiguratorReturnType<M, ArrayDescriptor<{ items: T }>> {
+    descriptor: T, meta?: M): EntityMetaFactoryReturnType<M, ArrayDescriptor<{ items: T }>> {
     throw new Error('Not implemented')
   }
 }
