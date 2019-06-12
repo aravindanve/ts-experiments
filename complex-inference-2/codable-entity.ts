@@ -15,7 +15,7 @@ type BooleanDescriptor = { booleanType: true }
 type NumberDescriptor = { numberType: true }
 type StringDescriptor = { stringType: true }
 type ObjectDescriptor<T extends EntityDescriptorMap> = { objectType: true, properties: T }
-type ArrayDescriptor<T extends EntityDescriptorArray> = { arrayType: true, items: T['items'] }
+type ArrayDescriptor<T extends EntityDescriptorArray> = { arrayType: true } & T
 
 type Optional<T> = T & { optional: true }
 type Nullable<T> = T & { nullable: true }
@@ -26,9 +26,9 @@ type MetaDescriptor = {
 }
 
 type TypeFromDescriptor<T> =
-  T extends Optional<Nullable<T>> ? ComplexTypeFromDescriptor<T> | undefined | null :
-  T extends Optional<T> ? ComplexTypeFromDescriptor<T> | undefined :
-  T extends Nullable<T> ? ComplexTypeFromDescriptor<T> | null :
+  T extends Optional<Nullable<infer T1>> ? ComplexTypeFromDescriptor<T1> | undefined | null :
+  T extends Optional<infer T2> ? ComplexTypeFromDescriptor<T2> | undefined :
+  T extends Nullable<infer T3> ? ComplexTypeFromDescriptor<T3> | null :
   ComplexTypeFromDescriptor<T>
 
 type PrimitiveTypeFromDescriptor<T> =
@@ -45,7 +45,7 @@ type ComplexTypeFromDescriptor<T> =
 type ComplexTypeFromDescriptorMap<T> =
   T extends object ? { [K in keyof T]: TypeFromDescriptor<T[K]> } : unknown
 
-type TypeFromMeta<M extends MetaDescriptor, T> =
+type WrappedTypeFromMeta<M extends MetaDescriptor, T> =
   M extends { optional: true, nullable: true } ? Optional<Nullable<T>> :
   M extends { optional: true } ? Optional<T> :
   M extends { nullable: true } ? Nullable<T> :
@@ -54,7 +54,7 @@ type TypeFromMeta<M extends MetaDescriptor, T> =
 type EntityFactory<T> = { (): T }
 
 type EntityConfiguratorReturnType<M extends MetaDescriptor, T> =
-  TypeFromMeta<M, T> & EntityFactory<TypeFromDescriptor<TypeFromMeta<M, T>>>
+  WrappedTypeFromMeta<M, T> & EntityFactory<TypeFromDescriptor<WrappedTypeFromMeta<M, T>>>
 
 namespace Entity {
   export function Boolean<M extends MetaDescriptor>(meta?: M): EntityConfiguratorReturnType<M, BooleanDescriptor> {
@@ -104,9 +104,14 @@ const someNullableObject /* :{ name: string } | null */ = Entity.Object({ name: 
 const someOptionalNullableObject /* :{ name: string } | undefined | null */ = Entity.Object({ name: Entity.String() }, { optional: true, nullable: true })()
 
 const someStringArray /* :string[] */ = Entity.Array(Entity.String())()
-const someOptionalStringArray /* :FIXME */ = Entity.Array(Entity.String(), { optional: true })()
-const someNullableStringArray /* :FIXME */ = Entity.Array(Entity.String(), { nullable: true })()
-const someOptionalNullableStringArray /* :FIXME */ = Entity.Array(Entity.String(), { optional: true, nullable: true })()
+const someOptionalStringArray /* :string[] | undefined */ = Entity.Array(Entity.String(), { optional: true })()
+const someNullableStringArray /* :string[] | null */ = Entity.Array(Entity.String(), { nullable: true })()
+const someOptionalNullableStringArray /* :string[] | null | undefined */ = Entity.Array(Entity.String(), { optional: true, nullable: true })()
+
+const someObjectArray /* :{ name: string }[] */ = Entity.Array(Entity.Object({ name: Entity.String() }))()
+const someOptionalObjectArray /* :{ name: string }[] | undefined */ = Entity.Array(Entity.Object({ name: Entity.String() }), { optional: true })()
+const someNullableObjectArray /* :{ name: string }[] | null */ = Entity.Array(Entity.Object({ name: Entity.String() }), { nullable: true })()
+const someOptionalNullableObjectArray /* :{ name: string }[] | undefined | null */ = Entity.Array(Entity.Object({ name: Entity.String() }), { optional: true, nullable: true })()
 
 const SomeEntity = Entity.Object({
   id: Entity.Number(),
@@ -123,4 +128,17 @@ const SomeEntity = Entity.Object({
   }))
 })
 
-const someEntity /* :FIXME */ = SomeEntity()
+const someEntity /* :{
+    id: number;
+    displayName: string;
+    isDefault: boolean;
+    isPrivate: boolean | null | undefined;
+    info: {
+        phone: string;
+    };
+    roles: {
+        id: number;
+        displayName: string;
+        isPrivate: boolean | null | undefined;
+    }[];
+} */ = SomeEntity()
